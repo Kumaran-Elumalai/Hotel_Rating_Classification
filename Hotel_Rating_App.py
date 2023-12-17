@@ -1,8 +1,7 @@
-
 import streamlit as st
 import joblib
 import numpy as np
-from wordcloud import WordCloud
+from wordcloud import WordCloud, STOPWORDS
 import matplotlib.pyplot as plt
 
 # Load the pre-trained models
@@ -19,11 +18,20 @@ def predict_sentiment(review):
 
 # Function to generate Word Cloud
 def generate_wordcloud(review):
-    wordcloud = WordCloud(width=800, height=400, background_color='white').generate(review)
-    fig, ax = plt.subplots(figsize=(10, 5))
-    ax.imshow(wordcloud, interpolation='bilinear')
-    ax.axis('off')
-    st.pyplot(fig)
+    if review and any(c.isalpha() for c in review):  # Check if there are any alphabetical characters in the input
+        # Check if the review contains only stop words
+        stop_words = set(STOPWORDS)
+        words = review.split()
+        if all(word.lower() in stop_words for word in words):
+            st.warning("Review contains only stop words. Cannot generate a word cloud.")
+        else:
+            wordcloud = WordCloud(width=800, height=400, background_color='white').generate(review)
+            fig, ax = plt.subplots(figsize=(10, 5))
+            ax.imshow(wordcloud, interpolation='bilinear')
+            ax.axis('off')
+            st.pyplot(fig)
+    else:
+        st.warning("No words to generate a word cloud.")
 
 # Streamlit app
 def main():
@@ -35,7 +43,7 @@ def main():
 
     # Load and display the image in the first column with a specific width
     hotel_image = 'hotel_image.png'
-    col1.image(hotel_image, width=145)  
+    col1.image(hotel_image, width=145)
 
     # Display the title in the second column
     col2.title("HotelSentinel: Review Sentiment Analyzer")
@@ -61,8 +69,11 @@ def main():
                 st.success(f"Predicted Sentiment: {sentiment_label} {sentiment_emoji}")
                 st.info(f"Confidence: {confidence:.2%}")
 
-                # Generate and display Word Cloud
-                generate_wordcloud(review_input)
+                # Check if the review is not empty before generating Word Cloud
+                if review_input.strip():
+                    generate_wordcloud(review_input)
+                else:
+                    st.warning("No words to generate a word cloud.")
 
         # Feedback input box
         feedback = st.text_input("Your feedback (optional):")
@@ -70,6 +81,7 @@ def main():
         # Submit button for feedback
         submit_button = st.form_submit_button("Submit Feedback")
         if submit_button and feedback:
+            st.session_state.feedback_submitted = True  # Mark feedback as submitted
             st.success("Thanks for your feedback!")
 
     # Check if feedback has been submitted before showing the "Thank You" message

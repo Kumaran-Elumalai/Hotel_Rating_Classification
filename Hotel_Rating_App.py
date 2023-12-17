@@ -1,7 +1,7 @@
 import streamlit as st
 import joblib
 import numpy as np
-from wordcloud import WordCloud, STOPWORDS
+from wordcloud import WordCloud
 import matplotlib.pyplot as plt
 
 # Load the pre-trained models
@@ -19,17 +19,11 @@ def predict_sentiment(review):
 # Function to generate Word Cloud
 def generate_wordcloud(review):
     if review and any(c.isalpha() for c in review):  # Check if there are any alphabetical characters in the input
-        # Check if the review contains only stop words
-        stop_words = set(STOPWORDS)
-        words = review.split()
-        if all(word.lower() in stop_words for word in words):
-            st.warning("Review contains only stop words. Cannot generate a word cloud.")
-        else:
-            wordcloud = WordCloud(width=800, height=400, background_color='white').generate(review)
-            fig, ax = plt.subplots(figsize=(10, 5))
-            ax.imshow(wordcloud, interpolation='bilinear')
-            ax.axis('off')
-            st.pyplot(fig)
+        wordcloud = WordCloud(width=800, height=400, background_color='white').generate(review)
+        fig, ax = plt.subplots(figsize=(10, 5))
+        ax.imshow(wordcloud, interpolation='bilinear')
+        ax.axis('off')
+        st.pyplot(fig)
     else:
         st.warning("No words to generate a word cloud.")
 
@@ -84,11 +78,7 @@ def main():
             st.session_state.feedback_submitted = True  # Mark feedback as submitted
             st.success("Thanks for your feedback!")
 
-    # Check if feedback has been submitted before showing the "Thank You" message
-    if 'feedback_submitted' in st.session_state:
-        # Thank You page
-        st.markdown("## Thank You Page")
-        st.write("Thank you for submitting feedback!")
+    
 
 # Function to get sentiment emoji
 def get_sentiment_emoji(sentiment_label):
